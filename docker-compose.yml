@@ -1,0 +1,49 @@
+version: '3.6'
+services:
+  db:
+    image: postgres:10-alpine
+    container_name: fundraiser-db
+    hostname: fundraiser-db
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: fundraiser
+      PGPORT: "5433"
+    ports:
+      - "5433:5433"
+    networks:
+      - backdb
+    volumes:
+      - "./initdb:/docker-entrypoint-initdb.d"
+  
+  server:
+    image: fundraiser-server
+    hostname: fundraiser-server
+    container_name: fundraiser-server
+    ports:
+      - "8085:8085"
+    depends_on:
+      - db
+    networks:
+      - frontback 
+      - backdb
+    links:
+      - db:database
+
+  client:
+    image: fundraiser-client
+    container_name: fundraiser-client
+    ports:
+      - "8080:8080"
+    depends_on:
+      - server
+    networks: 
+      - frontback
+    links:
+      - server
+  
+networks: 
+  backdb:
+    driver: bridge
+  frontback:
+    driver: bridge
